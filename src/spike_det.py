@@ -10,6 +10,14 @@ except ModuleNotFoundError:
     import numpy
     xp = numpy
 
+def to_numpy(array):
+    """
+    Convert an array to a NumPy array, regardless of whether it's a NumPy or CuPy array.
+    """
+    if xp.__name__ == "cupy":
+        return xp.asnumpy(array)
+    return array  # Already a NumPy array
+
 def pad_data(data, padding=10):
     """
     Pad the data array with zeros.
@@ -28,8 +36,8 @@ def detect_spikes(data, th1=400, th2=1.2, padding=10):
 
     # Get the neighborhood values for each pixel
     neighbors = xp.array([
-        data[padding + x_offsets[i] : -padding + x_offsets[i] or None,
-             padding + y_offsets[i] : -padding + y_offsets[i] or None]
+        data[padding + x_offsets[i]: -padding + x_offsets[i] or None,
+             padding + y_offsets[i]: -padding + y_offsets[i] or None]
         for i in range(8)
     ])
 
@@ -45,31 +53,14 @@ def detect_spikes(data, th1=400, th2=1.2, padding=10):
     # Apply spike detection thresholds
     spike_mask = (central_data > avg_neighbors + th1) & (central_data > avg_neighbors * th2)
 
-    # Create the corrected data by replacing spikes with the median of neighbors
-    corrected_data = central_data.copy()
+    return spike_mask, median_neighbors
+
+def replace_spikes(data, spike_mask, median_neighbors, padding=10):
+    """
+    Replace spikes in the original data with the median of valid neighbors.
+    """
+    corrected_data = data.copy()
     corrected_data[spike_mask] = median_neighbors[spike_mask]
-
-    return spike_mask, corrected_data
-
-def replace_spikes(data, spike_mask, padding=10):
-    """
-    Replace spikes in the original data with the average of valid neighbors.
-    """
-    x_offsets = xp.array([-1, 0, 1, -1, 1, -1, 0, 1])
-    y_offsets = xp.array([1, 1, 1, 0, 0, -1, -1, -1])
-
-    # Pad the data for edge handling
-    padded_data = pad_data(data, padding=padding)
-    padded_mask = pad_data(spike_mask, padding=padding)
-
-    # Replace spikes
-    for i in range(8):
-        neighbor_data = padded_data[padding + x_offsets[i] : -padding + x_offsets[i] or None,
-                                    padding + y_offsets[i] : -padding + y_offsets[i] or None]
-        padded_data = xp.where(padded_mask, neighbor_data, padded_data)
-
-    # Remove padding
-    corrected_data = padded_data[padding:-padding, padding:-padding]
     return corrected_data
 
 def process_image(file_path, th1=400, th2=1.2, padding=10, save_output=False, output_spike_mask=None, output_corrected_data=None, verbose=False):
@@ -94,33 +85,33 @@ def process_image(file_path, th1=400, th2=1.2, padding=10, save_output=False, ou
         print("Data padded.")
 
     # Detect spikes
-    spike_mask, corrected_data = detect_spikes(padded_data, th1=th1, th2=th2, padding=padding)
+    spike_mask, median_neighbors = detect_spikes(padded_data, th1=th1, th2=th2, padding=padding)
 
     if verbose:
-        print("Spikes detected.")
+        print(f"Spikes detected. Number of spikes: {xp.sum(spike_mask)}")
 
     # Replace spikes in the original data
-    final_corrected_data = replace_spikes(data, spike_mask, padding=padding)
+    final_corrected_data = replace_spikes(data, spike_mask, median_neighbors, padding=padding)
 
     if verbose:
-        print("Spikes replaced in the data.")
+        print(f"Spikes replaced. Max value in corrected data: {xp.max(final_corrected_data)}")
 
     if save_output:
         if output_spike_mask is None or output_corrected_data is None:
             raise ValueError("Output paths for spike mask and corrected data must be specified when --save_output is used.")
 
         # Save spike mask and corrected data
-        xp.save(output_spike_mask, xp.asnumpy(spike_mask))
-        xp.save(output_corrected_data, xp.asnumpy(final_corrected_data))
+        xp.save(output_spike_mask, to_numpy(spike_mask))
+        xp.save(output_corrected_data, to_numpy(final_corrected_data))
 
         if verbose:
-            print(f"Processing complete. Spike mask saved to {output_spike_mask}, corrected data saved to {output_corrected_data}.")
+            print(f"Spike mask saved to {output_spike_mask}, corrected data saved to {output_corrected_data}.")
     else:
         if verbose:
-            print("Processing complete. Results not saved to disk.")
+            print("Results not saved to disk.")
 
     # Return results
-    return xp.asnumpy(spike_mask), xp.asnumpy(final_corrected_data)
+    return to_numpy(spike_mask), to_numpy(final_corrected_data)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Detect and correct spikes in a FITS image.")
@@ -135,22 +126,25 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    spike, im = process_image(
+    spike_mask, corrected_data = process_image(
         file_path=args.file_path,
-        output_spike_mask=args.output_spike_mask,
-        output_corrected_data=args.output_corrected_data,
         th1=args.th1,
         th2=args.th2,
         padding=args.padding,
-        save_output=args.save_output
+        save_output=args.save_output,
+        output_spike_mask=args.output_spike_mask,
+        output_corrected_data=args.output_corrected_data,
+        verbose=args.verbose
     )
 
     fig = plt.figure()
-    
-    ax = fig.add_subplot(121)
-    ax.imshow(spike, origin='lower', cmap='jet')
-    
-    ax = fig.add_subplot(122)
-    ax.imshow(spike, origin='lower', cmap='Greys')
-    
+    ax1 = fig.add_subplot(121)
+    ax1.imshow(spike_mask, origin='lower', cmap='jet')
+    ax1.set_title("Spike Mask")
+
+    ax2 = fig.add_subplot(122)
+    ax2.imshow(corrected_data, origin='lower', cmap='Greys')
+    ax2.set_title("Corrected Data")
+
+    plt.tight_layout()
     plt.show()
