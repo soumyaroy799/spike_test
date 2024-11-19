@@ -64,6 +64,7 @@ def replace_spikes(data, spike_mask, median_neighbors, padding=10):
     return corrected_data
 
 def process_image(file_path, th1=400, th2=1.2, padding=10, save_output=False, output_spike_mask=None, output_corrected_data=None, verbose=False):
+    
     """
     Process an image to detect and correct spikes.
     Optionally saves the results to disk.
@@ -71,30 +72,39 @@ def process_image(file_path, th1=400, th2=1.2, padding=10, save_output=False, ou
     if verbose:
         print(f"Processing file: {file_path}")
 
-    # Load FITS file
-    with fits.open(file_path) as hdul:
-        data = xp.array(hdul[0].data, dtype=float)  # Load as float for processing
-
-    if verbose:
+        # Load FITS file
+        with fits.open(file_path) as hdul:
+            data = xp.array(hdul[0].data, dtype=float)  # Load as float for processing
+        
         print("Data loaded successfully.")
 
-    # Pad the data
-    padded_data = pad_data(data, padding=padding)
+        # Pad the data
+        padded_data = pad_data(data, padding=padding)
 
-    if verbose:
         print("Data padded.")
 
     # Detect spikes
-    spike_mask, median_neighbors = detect_spikes(padded_data, th1=th1, th2=th2, padding=padding)
+        spike_mask, median_neighbors = detect_spikes(padded_data, th1=th1, th2=th2, padding=padding)
 
-    if verbose:
         print(f"Spikes detected. Number of spikes: {xp.sum(spike_mask)}")
 
     # Replace spikes in the original data
-    final_corrected_data = replace_spikes(data, spike_mask, median_neighbors, padding=padding)
+        final_corrected_data = replace_spikes(data, spike_mask, median_neighbors, padding=padding)
 
-    if verbose:
         print(f"Spikes replaced. Max value in corrected data: {xp.max(final_corrected_data)}")
+    
+    else:
+
+        # Load FITS file
+        with fits.open(file_path) as hdul:
+            data = xp.array(hdul[0].data, dtype=float)  # Load as float for processing
+        
+        padded_data = pad_data(data, padding=padding)
+        spike_mask, median_neighbors = detect_spikes(padded_data, th1=th1, th2=th2, padding=padding)
+
+        spike_mask, median_neighbors = detect_spikes(padded_data, th1=th1, th2=th2, padding=padding)
+        final_corrected_data = replace_spikes(data, spike_mask, median_neighbors, padding=padding)
+
 
     if save_output:
         if output_spike_mask is None or output_corrected_data is None:
