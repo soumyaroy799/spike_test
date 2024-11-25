@@ -33,9 +33,11 @@ def detect_spikes(data, th1=400, th2=1.2, plot=False):
 
     # Compute mean and median for valid neighbors
     valid_mask = neighbors > 0
-    neighbor_sum = cp.sum(neighbors * valid_mask, axis=0)
-    neighbor_count = cp.sum(valid_mask, axis=0)
-    avg_neighbor = cp.divide(neighbor_sum, neighbor_count, where=neighbor_count > 0, out=cp.zeros_like(neighbor_sum))
+    neighbor_sum = cp.asarray(neighbor_sum)
+    neighbor_count = cp.asarray(neighbor_count)
+
+    avg_neighbor = cp.divide(neighbor_sum, neighbor_count, where=(neighbor_count > 0), out=cp.zeros_like(neighbor_sum))
+
 
     # Median calculation
     neighbor_sorted = cp.sort(neighbors, axis=0)
