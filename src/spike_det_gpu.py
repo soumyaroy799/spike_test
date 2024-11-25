@@ -23,7 +23,7 @@ def detect_spikes(data, th1=400, th2=1.2, plot=False):
     x_offsets = cp.array([-1, 0, 1, -1, 1, -1, 0, 1])
     y_offsets = cp.array([1, 1, 1, 0, 0, -1, -1, -1])
 
-    spike_map = cp.zeros(data.shape, dtype=cp.bool)
+    spike_map = cp.zeros(data.shape, dtype=cp.bool_)  # Corrected dtype
     corrected_data = data.copy()
 
     # Create shifted arrays for neighbors (using CuPy roll function for GPU)
@@ -72,6 +72,7 @@ def detect_spikes(data, th1=400, th2=1.2, plot=False):
 
     # Return the processed spike map and corrected data (as CuPy or NumPy arrays)
     return spike_map, corrected_data
+
 
 def process_file(input_file, th1, th2, save_fits, plot, time_execution):
     """
