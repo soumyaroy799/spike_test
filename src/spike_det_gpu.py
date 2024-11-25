@@ -84,8 +84,14 @@ def process_file(input_file, th1, th2, save_fits, plot, time_execution):
         data = hdul[0].data
         header = hdul[0].header
 
-    # Pad the data (using CPU for this as CuPy doesn't have pad function)
-    padded_data = np.pad(data, pad_width=10, mode='constant', constant_values=0)
+    # Pad the data
+    if USE_CUPY:
+        # Custom padding logic for CuPy
+        padded_data = cp.zeros((data.shape[0] + 20, data.shape[1] + 20), dtype=data.dtype)
+        padded_data[10:-10, 10:-10] = cp.asarray(data)
+    else:
+        # Use NumPy's pad for CPU
+        padded_data = cp.pad(data, pad_width=10, mode='constant', constant_values=0)
 
     # Detect spikes
     spike_map, corrected_data = detect_spikes(padded_data, th1, th2, plot)
@@ -105,6 +111,7 @@ def process_file(input_file, th1, th2, save_fits, plot, time_execution):
     
     else:
         return 0
+
 
 def main():
     parser = argparse.ArgumentParser(description="Spike detection and correction in FITS files.")
