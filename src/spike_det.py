@@ -3,20 +3,24 @@ import matplotlib.pyplot as plt
 from astropy.io import fits
 import argparse
 import time
+from itertools import  product
 
 def detect_spikes(data, th1=400, th2=1.2, plot=False):
     """
     Detect spikes in the image and optionally visualize the results.
     """
-    x_offsets = np.array([-1, 0, 1, -1, 1, -1, 0, 1])
-    y_offsets = np.array([1, 1, 1, 0, 0, -1, -1, -1])
+    #x_offsets = np.array([-1, 0, 1, -1, 1, -1, 0, 1])
+    #y_offsets = np.array([1, 1, 1, 0, 0, -1, -1, -1])
+
+
+    x_offsets = np.arange(-2,3,1); y_offsets = x_offsets
 
     spike_map = np.zeros(data.shape, dtype=bool)
     corrected_data = data.copy()
 
     # Create shifted arrays for neighbors
     neighbors = np.stack(
-        [np.roll(np.roll(data, y, axis=0), x, axis=1) for x, y in zip(x_offsets, y_offsets)]
+        [np.roll(np.roll(data, y, axis=0), x, axis=1) for x, y in product(x_offsets, y_offsets)]
     )
 
     # Compute mean and median for valid neighbors
