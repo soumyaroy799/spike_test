@@ -5,7 +5,7 @@ import argparse
 import time
 from itertools import  product
 
-def detect_spikes(data, th1=400, th2=1.2, plot=False):
+def detect_spikes(data, th1=400, th2=1.2, kernel=5, plot=False):
     """
     Detect spikes in the image and optionally visualize the results.
     """
@@ -13,7 +13,7 @@ def detect_spikes(data, th1=400, th2=1.2, plot=False):
     #y_offsets = np.array([1, 1, 1, 0, 0, -1, -1, -1])
 
 
-    x_offsets = np.arange(-2,3,1); y_offsets = x_offsets
+    x_offsets = np.arange(-1*(kernel//2),(kernel//2)+1,1); y_offsets = x_offsets
 
     spike_map = np.zeros(data.shape, dtype=bool)
     corrected_data = data.copy()
@@ -59,10 +59,10 @@ def detect_spikes(data, th1=400, th2=1.2, plot=False):
         plt.tight_layout()
         plt.show()
 
-    return spike_map[10:-10, 10:-10], corrected_data
+    return spike_map[10:-10, 10:-10], corrected_data[10:-10, 10:-10]
 
 
-def process_file(input_file, th1, th2, save_fits, plot, time_execution):
+def process_file(input_file, th1, th2, kernel, save_fits, plot, time_execution):
     """
     Process a single FITS file to detect and remove spikes.
     """
@@ -70,14 +70,14 @@ def process_file(input_file, th1, th2, save_fits, plot, time_execution):
 
     # Load the FITS file
     with fits.open(input_file) as hdul:
-        data = hdul[0].data
+        data = hdul[0].data.astype('float')
         header = hdul[0].header
 
     # Pad the data
     padded_data = np.pad(data, pad_width=10, mode='constant', constant_values=0)
 
     # Detect spikes
-    spike_map, corrected_data = detect_spikes(padded_data, th1, th2, plot)
+    spike_map, corrected_data = detect_spikes(padded_data, th1, th2, kernel,  plot)
 
     # Save corrected FITS file if enabled
     if save_fits:
@@ -90,7 +90,7 @@ def process_file(input_file, th1, th2, save_fits, plot, time_execution):
         elapsed_time = time.time() - start_time
         print(f"Processing time for {input_file}: {elapsed_time:.2f} seconds")
         return elapsed_time
-    
+
     else:
         return 0
 
@@ -100,6 +100,7 @@ def main():
     parser.add_argument("input_file", help="Path to the input FITS file")
     parser.add_argument("--th1", type=float, default=400, help="Minimum intensity threshold")
     parser.add_argument("--th2", type=float, default=1.2, help="Median-based intensity threshold")
+    parser.add_argument("--kernel", type=float, default=5, help="Full kernel size")
     parser.add_argument("--save-fits", action="store_true", help="Save corrected FITS file")
     parser.add_argument("--plot", action="store_true", help="Plot spike map and corrected data")
     parser.add_argument("--time", action="store_true", help="Time the execution for this file")
@@ -110,6 +111,7 @@ def main():
         input_file=args.input_file,
         th1=args.th1,
         th2=args.th2,
+        kernel=args.kernel,
         save_fits=args.save_fits,
         plot=args.plot,
         time_execution=args.time
