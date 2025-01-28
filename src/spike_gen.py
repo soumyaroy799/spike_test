@@ -129,10 +129,9 @@ def save_image_to_fits(image, output_path):
     hdu.writeto(output_path, overwrite=True)
 
 def plot_image(image, title="Synthetic Observation"):
-    plt.figure(figsize=(10, 10))
-    plt.imshow(image, cmap='gray', origin='lower')
+    plt.figure(figsize=(6, 6))
+    plt.imshow(image, cmap='gray', origin='lower', vmax=4e3)
     plt.title(title)
-    plt.colorbar(label="Intensity")
     plt.show()
 
 # Main function for pipeline
@@ -186,7 +185,7 @@ if __name__ == "__main__":
     parser.add_argument("--sun_x", type=int, default=2576, help="X-coordinate of the sun's center (default: center of the image)")
     parser.add_argument("--sun_y", type=int, default=1207, help="Y-coordinate of the sun's center (default: center of the image)")
     parser.add_argument("--sun_radius", type=int, default=1418, help="Radius of the sun (default: 0, no sun added)")
-    parser.add_argument("--sun_intensity", type=float, default=1e4, help="Intensity of the sun (default: 1e4)")
+    parser.add_argument("--sun_intensity", type=float, default=5e3, help="Intensity of the sun (default: 1e4)")
 
 
 
