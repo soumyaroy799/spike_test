@@ -21,22 +21,17 @@ pip install -r requirements.txt
 
 ## Usage
 
-### 1. Generate synthetic spikes:
-```bash
-python spike_gen.py --input lightcurve.csv --output spiked.csv --num-spikes 20
-```
-
-### 2. Detect spikes:
+### 1. Detect spikes:
 ```bash
 python spike_det.py --input spiked.csv --threshold 5 --window 3
 ```
 
-### 3. Verify spike removal:
+### 2. Verify spike removal:
 ```bash
 python verify_despike.py --original spiked.csv --cleaned despiked.csv
 ```
 
-### 4. Run IDL version (if needed):
+### 3. Run IDL version (if you are working in IDL):
 ```idl
 IDL> .run spike_det.pro
 ```
