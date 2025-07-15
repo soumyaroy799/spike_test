@@ -43,9 +43,9 @@ IDL> .run spike_det.pro
 ├── LICENSE                      # MIT License file
 ├── README.md                    # Project overview and usage
 ├── requirements.txt             # Python dependencies
-├── output/                      # 📂 Output directory
+├── output/                      # Output directory
 │   └── synthetic_image.fits     # Example FITS output (spiked or processed)
-└── src/                         # 📁 All source code lives here
+└── src/                         # All source code lives here
     ├── 2spike.py                # Manual comparison logic
     ├── spike_det.pro            # IDL spike detection script
     ├── spike_det.py             # Spike detection in Python
