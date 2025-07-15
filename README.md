@@ -19,7 +19,7 @@ You can install dependencies using:
 pip install -r requirements.txt
 ```
 
-##  Usage
+## Usage
 
 ### 1. Generate synthetic spikes:
 ```bash
@@ -41,15 +41,21 @@ python verify_despike.py --original spiked.csv --cleaned despiked.csv
 IDL> .run spike_det.pro
 ```
 
-##  File Structure
+## File Structure
 
 ```
-spike_test/
-├── spike_gen.py           # Injects artificial spikes
-├── spike_det.py           # Detects spikes from data
-├── verify_despike.py      # Compares original and de-spiked curves
-├── 2spike.py              # Extra comparison logic
-├── spike_det.pro          # IDL-based spike detection
+.
+├── LICENSE                      # MIT License file
+├── README.md                    # Project overview and usage
+├── requirements.txt             # Python dependencies
+├── output/                      # 📂 Output directory
+│   └── synthetic_image.fits     # Example FITS output (spiked or processed)
+└── src/                         # 📁 All source code lives here
+    ├── 2spike.py                # Manual comparison logic
+    ├── spike_det.pro            # IDL spike detection script
+    ├── spike_det.py             # Spike detection in Python
+    ├── spike_gen.py             # Spike injection into lightcurve
+    └── verify_despike.py        # Despiking verification and visualization
 ```
 
 ## Contact
@@ -57,7 +63,7 @@ spike_test/
 **Soumya Roy**  
 Email: soumyaroy799@gmail.com
 
-##  License
+## License
 
 This project is licensed under the MIT License – see the [LICENSE](./LICENSE) file for details.
 
