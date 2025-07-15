@@ -63,5 +63,4 @@ This project is licensed under the MIT License – see the [LICENSE](./LICENSE) 
 
 ## Status
 
-Actively developed and tested on solar flare datasets from Aditya-L1's SoLEXS and SUIT calibration spikes.  
-Python 3.8+ recommended.
+Actively developed and tested on solar datasets from Aditya-L1's SUIT. Python 3.8+ recommended.
